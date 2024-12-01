@@ -1,0 +1,127 @@
+;;;
+;;; minifilter_injection
+;;;
+;;;
+;;; Copyright (c) 1999 - 2002, Microsoft Corporation
+;;;
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"             ;This is determined by the work this filter driver does
+ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}    ;This value is determined by the Class
+Provider    = %ProviderString%
+DriverVer = 10/24/2024,19.24.32.627
+CatalogFile = minifilter_injection.cat
+PnpLockdown = 1
+
+[SourceDisksFiles]
+minifilter_injection.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[DestinationDirs]
+minifilter_injectionDownlevel.CopyDriverFiles  = 12            ;%windir%\system32\drivers
+minifilter_injectionDownlevel.DelDriverFiles   = 12            ;%windir%\system32\drivers
+minifilter_injection.DriverFiles               = 13            ;driver store
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall.NTamd64.10.0...25952]
+OptionDesc  = %ServiceDescription%
+CopyFiles   = minifilter_injection.DriverFiles
+
+[DefaultInstall.NTamd64.10.0...25952.Services]
+AddService  = %ServiceName%,,minifilter_injection.Service
+
+;
+; Support sections
+;
+
+[minifilter_injection.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %13%\%DriverName%.sys    ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                        ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                        ;SERVICE_DEMAND_START
+ErrorControl     = 1                        ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = minifilter_injection.AddRegistry
+
+[minifilter_injection.AddRegistry]
+HKR,"Parameters","SupportedFeatures",0x00010001,0x3
+HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[minifilter_injection.DriverFiles]
+%DriverName%.sys
+
+;;
+;; Downlevel default install sections
+;;
+
+[DefaultInstall.NTamd64]
+OptionDesc  = %ServiceDescription%
+CopyFiles   = minifilter_injectionDownlevel.CopyDriverFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService  = %ServiceName%,,minifilter_injectionDownlevel.Service
+
+;;
+;; Downlevel default uninstall sections
+;;
+
+[DefaultUninstall.NTamd64]
+LegacyUninstall = 1
+DelFiles        = minifilter_injectionDownlevel.DelDriverFiles
+
+[DefaultUninstall.NTamd64.Services]
+DelService      = %ServiceName%,0x200      ;Ensure service is stopped before deleting
+
+;
+; Downlevel support sections
+;
+
+[minifilter_injectionDownlevel.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys    ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                        ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                        ;SERVICE_DEMAND_START
+ErrorControl     = 1                        ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = minifilter_injectionDownlevel.AddRegistry
+
+[minifilter_injectionDownlevel.AddRegistry]
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[minifilter_injectionDownlevel.CopyDriverFiles]
+%DriverName%.sys
+
+[minifilter_injectionDownlevel.DelDriverFiles]
+%DriverName%.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+ProviderString          = "minifilter_injection"
+ServiceDescription      = "minifilter_injection mini-filter driver"
+ServiceName             = "minifilter_injection"
+DriverName              = "minifilter_injection"
+DiskId1                 = "minifilter_injection Device Installation Disk"
+
+;Instances specific information.
+DefaultInstance         = "minifilter_injection"
+Instance1.Name          = "minifilter_injection"
+Instance1.Altitude      = "370020"
+Instance1.Flags         = 0x1          ; Suppress automatic attachments
